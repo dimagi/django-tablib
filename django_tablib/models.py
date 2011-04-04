@@ -24,20 +24,19 @@ class DatasetMetaclass(type):
         opts = new_class._meta = DatasetOptions(getattr(new_class,
                                                         'Meta', None))
 
-        if not opts.model and not opts.queryset:
-            raise NoObjectsException("You must set a model or non-empty "
-                                     "queryset for each Dataset subclass")
-        if opts.queryset:
+        if opts.model is not None:
+            model = opts.model
+            queryset = model.objects.all()
+            new_class.model = model
+            new_class.queryset = queryset
+        elif opts.queryset is not None:
             queryset = opts.queryset
             model = queryset.model
             new_class.queryset = queryset
             new_class.model = model
         else:
-            model = opts.model
-            queryset = model.objects.all()
-            new_class.model = model
-            new_class.queryset = queryset
-        
+            raise NoObjectsException("You must set a model or non-empty "
+                                     "queryset for each Dataset subclass")
         return new_class
 
 class ModelDataset(BaseDataset):
